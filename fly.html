@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>النجمة الطائرة ⭐</title>
+</head>
+<body style="margin:0; background:#1b2a4a; touch-action:none">
+<canvas id="game" width="480" height="720" style="height:100vh; max-width:100%; display:block; margin:auto"></canvas>
+<script>
+const c = document.getElementById("game").getContext("2d")
+let y = 300, v = 0, pipes = [], score = 0, best = 0
+let dead = true, last = 0, trail = []
+onpointerdown = () => {
+  if (dead) y = 300, pipes = [], score = 0, dead = false
+  v = -9
+}
+onkeydown = onpointerdown
+function loop(t) {
+  const k = Math.min(2, (t - last) / 16.7 || 1); last = t
+  c.fillStyle = "#1b2a4a"; c.fillRect(0, 0, 480, 720)
+  if (!dead) {
+    v += 0.5 * k; y += v * k
+    if (!pipes.length || pipes.at(-1).x < 230)
+      pipes.push({ x: 480, gap: 200 + Math.random() * 320 })
+    for (const p of pipes) {
+      p.x -= 3 * k
+      if (!p.ok && p.x < 8) p.ok = true, score++
+      const hit = Math.abs(y - p.gap) > 70
+      if (p.x < 122 && p.x > 8 && hit) dead = true
+    }
+    pipes = pipes.filter(p => p.x > -80)
+    if (y < 0 || y > 720) dead = true
+    if (dead) best = Math.max(best, score)
+  }
+  c.fillStyle = "#c9a961"
+  for (const p of pipes) {
+    c.fillRect(p.x, 0, 70, p.gap - 90)
+    c.fillRect(p.x, p.gap + 90, 70, 720)
+  }
+  trail.push(y); if (trail.length > 14) trail.shift()
+  trail.forEach((ty, i) => {
+    c.fillStyle = `rgba(255,215,90,${i / 30})`
+    c.beginPath(); c.arc(16 + i * 6, ty, i / 2, 0, 7)
+    c.fill()
+  })
+  c.textAlign = "center"; c.fillStyle = "white"
+  c.save(); c.translate(100, y); c.rotate(Math.min(1, v / 12))
+  c.font = "48px sans-serif"; c.fillText("⭐", 0, 16)
+  c.restore()
+  c.font = "bold 64px sans-serif"
+  c.fillText(score, 240, 100)
+  if (dead) {
+    c.font = "bold 30px sans-serif"
+    c.fillText("اضغط لتطير 👆", 240, 400)
+    c.fillText("أفضل نتيجة: " + best, 240, 450)
+  }
+  requestAnimationFrame(loop)
+}
+requestAnimationFrame(loop)
+</script>
+</body>
+</html>
